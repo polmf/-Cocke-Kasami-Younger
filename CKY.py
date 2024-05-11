@@ -41,3 +41,8 @@ def CKY(non_terminals, terminals, R, init_symbol, w):
                         if len(rhs) == 2 and rhs[0] in T[i][k] and rhs[1] in T[k + 1][j]:
                             T[i][j].add(lhs)
     return T
+
+
+w = 'ab'
+
+CKY(non_terminals, terminals, R, init_symbol, w)

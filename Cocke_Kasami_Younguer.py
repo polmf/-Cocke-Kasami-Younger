@@ -70,9 +70,12 @@ def cykParse(w):
 	# If word can be formed by rules 
 	# of given grammar
 	if len(T[0][n-1]) != 0:
-		print("True")
+		print("True", T)
 	else:
 		print("False")
+
+    
+        
 	
 # Driver Code
 
@@ -82,11 +85,6 @@ w = "a very heavy orange book".split()
 # Function Call
 cykParse(w)
 
-# This code is contributed by mohit kumar 29
 
-def CKY(gramatica, paraula):
-
-    
-    taula = []
     
 
