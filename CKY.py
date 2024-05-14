@@ -11,26 +11,50 @@ S is the start symbol, a distinct element of V, and
 V and X are assumed to be disjoint sets.
 """
 
-non_terminals = ["NP", "Nom", "Det", "AP", 
-                  "Adv", "A"]
-terminals = ["book", "orange", "man", 
-             "tall", "heavy", 
-             "very", "muscular"]
+non_terminals = ["S", "A", "B"]
+terminals = ["a", "b", "c"]
  
 # Rules of the grammar
 R = {
-     "S": [['a'], ['X', 'A'], ['A', 'X'], ['b']],
-     "A": [['R', 'B']],
-     "B": [['A', 'X'], ['b'], ['a']],
-     "X": [['a']],
-     "R": [['X', 'B']]
+     "S": [['A', 'B'], ],
+     "A": [['S'], ['a']],
+     "B": [['b']],
     }
 
 init_symbol = 'S'
 
+def transformar(non_termionals, terminals, R):
+    
+    
+    
+    return R
+
+def gramatica_CFN(non_terminals, terminals, R):
+    
+    for lhs, rule in R.items():
+        for rhs in rule:
+            # If a terminal is found
+            if len(rhs) == 1:
+                if rhs[0] not in terminals:
+                    return False
+                
+            if len(rhs) == 2:
+                if rhs[0] not in non_terminals or rhs[1] not in non_terminals:
+                    return False
+
+            if len(rhs) >= 3:
+                return False
+    
+    return True
+
 
 def CKY(non_terminals, terminals, R, init_symbol, w):
     n = len(w)
+    
+    gramatica_correcte = gramatica_CFN(non_terminals, terminals, R)
+    
+    if not gramatica_correcte:
+        R = transformar(non_terminals, terminals, R)
     
     T = {}           
     for j in range(1, n+1):
@@ -65,7 +89,7 @@ def CKY(non_terminals, terminals, R, init_symbol, w):
         print("La palabra '{}' no es aceptada por la gramática.".format(w))
         return T
 
-w = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbb'
+w = 'abab'
 
 table = CKY(non_terminals, terminals, R, init_symbol, w)
 
