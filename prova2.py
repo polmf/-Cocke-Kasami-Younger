@@ -24,18 +24,20 @@ def CKY(non_terminals, terminals, R, init_symbol, w):
     else:
         return False, T
 
-# Definición de la gramática y símbolo inicial
+non_terminals = ["S", "A", "B"]
+terminals = ["a", "b", "c"]
+ 
+# Rules of the grammar
 R = {
-    "S": [['a'], ['X', 'A'], ['A', 'X'], ['b']],
-    "A": [['R', 'B']],
-    "B": [['A', 'X'], ['b'], ['a']],
-    "X": [['a']],
-    "R": [['X', 'B']]
-}
+     "S": [['A', 'B']],
+     "A": [['a'], ['c']],
+     "B": [['b']],
+    }
+
 init_symbol = 'S'
 
 # Palabra a reconocer
-w = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaabbbbbbbbbbbbbbbbbbbbbbbbbb"
+w = "abab"
 
 # Ejecución del algoritmo CKY
 accepted, table = CKY([], [], R, init_symbol, w)
