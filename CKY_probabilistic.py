@@ -27,6 +27,8 @@ R_probabilistic = {
      "IN": [(['with'], 0.5), (['in'], 0.5)]
     }
 
+init_symbol = 'S'
+
 def CKY_prob(R, init_symbol, w):
     n = len(w)
     
@@ -86,9 +88,6 @@ R = {
      "X": [['a']],
      "R": [['X', 'B']]
     }
-
-init_symbol = 'S'
-
 
 def CKY(non_terminals, terminals, R, init_symbol, w):
     n = len(w)
