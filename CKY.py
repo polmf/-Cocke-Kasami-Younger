@@ -102,7 +102,6 @@ def CKY(non_terminals, terminals, R, init_symbol, w):
     n = len(w)
     
     gramatica_correcte = gramatica_CFN(non_terminals, terminals, R)
-    print(gramatica_correcte)
 
     if not gramatica_correcte:
         R = transformar(non_terminals, terminals, R)
