@@ -13,15 +13,18 @@ V and X are assumed to be disjoint sets.
 import random
 import string
 
-non_terminals = ["S", "A", "B"]
-terminals = ["a", "b", "c"]
+non_terminals = ['S', 'F', 'A', 'B', 'C', 'Q']
+terminals = ['a', 'b', 'c', 'q', 'z']
  
 # Rules of the grammar
 R = {
-     "S": [['A', 'B'], ],
-     "A": [['S'], ['a']],
-     "B": [['b']],
-    }
+    "S": [['A', 'B', 'C'], ['Q']],
+    "F": [['B', 'Q']],
+    "A": [['a']],
+    "B": [['b']],
+    "C": [['c']],
+    "Q": [['q']]
+}
 
 init_symbol = 'S'
 
@@ -99,8 +102,10 @@ def CKY(non_terminals, terminals, R, init_symbol, w):
     n = len(w)
     
     gramatica_correcte = gramatica_CFN(non_terminals, terminals, R)
+    print(gramatica_correcte)
     
-    if not gramatica_correcte:
+    if gramatica_correcte == False:
+        
         R = transformar(non_terminals, terminals, R)
     
     T = {}           
@@ -136,7 +141,7 @@ def CKY(non_terminals, terminals, R, init_symbol, w):
         print("La palabra '{}' no es aceptada por la gramática.".format(w))
         return T
 
-w = 'abab'
+w = 'abc'
 
 table = CKY(non_terminals, terminals, R, init_symbol, w)
 
