@@ -4,7 +4,10 @@ import string
 def to_fnc(rules):
     new_rules = dict(rules)
     new_non_terms = set()
-
+    for key in rules.keys():
+        new_non_terms.add(key)
+        
+    print(new_non_terms)
     # Función para obtener un nuevo símbolo no terminal
     def get_new_non_term():
         nonlocal new_non_terms
@@ -36,9 +39,11 @@ def to_fnc(rules):
 # Reglas originales
 rules = {
     "S": [['A', 'B', 'C']],
+    "F": [['B', 'Q', 'A']],
     "A": [['a',]],
     "B": [['b']],
     "C": [['c']],
+    "Q": [['q']]
 }
 
 # Convertir a FNC

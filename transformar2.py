@@ -1,45 +1,68 @@
-def remove_unit_rules(rules):
-    # Diccionario para almacenar las reglas sin reglas unitarias
-    new_rules = {}
+import random
+import string
 
-    # Diccionario para almacenar las reglas unitarias que convierten un símbolo no terminal en otro símbolo no terminal
-    unit_rules = {}
+def get_new_non_term(new_non_terms):
+    available_non_terms = set(string.ascii_uppercase) - new_non_terms
+    if not available_non_terms:
+        # Si no hay letras no terminales disponibles, agrega nuevas letras al conjunto
+        new_non_terms = set()
+        available_non_terms = set(string.ascii_uppercase)
+        
+    new_non_term = random.choice(list(available_non_terms))
+    new_non_terms.add(new_non_term)
+    return new_non_term
 
-    # Recorremos todas las reglas
-    for key, value in rules.items():
-        # Si la regla tiene solo un símbolo no terminal en el lado derecho
-        if len(value) == 1 and len(value[0]) == 1 and value[0][0] in rules and value[0][0] != key:
-            # Verificamos si el símbolo es no terminal o terminal
-            if value[0][0] in new_rules:
-                # Agregamos la regla unitaria al diccionario de reglas unitarias
-                unit_rules[key] = value[0][0]
+def remove_unit_rules(non_terminals, terminals, R):
+    R = R.copy()
+    claves_para_eliminar = []
+    nuevos_no_terminales = {}
+    new_non_terms = set(non_terminals)
+    
+    for lhs, rule in list(R.items()):
+        new_rhs = []
+        for rhs in rule:
+            if len(rhs) == 1 and rhs[0] in non_terminals:
+                R[lhs].extend(R[rhs[0]])
+                claves_para_eliminar.append(rhs[0])
+            elif len(rhs) == 2:
+                if rhs[0] not in non_terminals and rhs[0] not in terminals:
+                    nuevo_nt = get_new_non_term(new_non_terms)
+                    nuevos_no_terminales[nuevo_nt] = [[rhs[0]]]
+                    rhs[0] = nuevo_nt
+                if rhs[1] not in non_terminals and rhs[1] not in terminals:
+                    nuevo_nt = get_new_non_term(new_non_terms)
+                    nuevos_no_terminales[nuevo_nt] = [[rhs[1]]]
+                    rhs[1] = nuevo_nt
+                new_rhs.append(rhs)
+            elif len(rhs) > 2:
+                while len(rhs) > 2:
+                    new_key = get_new_non_term(new_non_terms)
+                    nuevos_no_terminales[new_key] = [[rhs[1]] + rhs[2:]]
+                    rhs = [rhs[0], new_key]
+                new_rhs.append(rhs)
             else:
-                # Agregamos la regla al diccionario de reglas sin reglas unitarias
-                new_rules[key] = value
-        else:
-            # Agregamos la regla al diccionario de reglas sin reglas unitarias
-            new_rules[key] = value
+                new_rhs.append(rhs)
+        R[lhs] = new_rhs
+    
+    R.update(nuevos_no_terminales)
+    
+    for clave in claves_para_eliminar:
+        if clave in R:
+            del R[clave]
 
-    # Procesamos las reglas unitarias
-    for unit_key, unit_value in unit_rules.items():
-        # Obtenemos todas las producciones de la regla unitaria
-        unit_productions = rules[unit_value]
-        # Agregamos las producciones de la regla unitaria al conjunto de reglas sin reglas unitarias
-        new_rules[unit_key] = unit_productions
+    return R
 
-    return new_rules
+non_terminals = ['S', 'F', 'A', 'B', 'C', 'Q']
+terminals = ['a', 'b', 'c', 'q', 'z']
 
-# Reglas originales
 rules = {
-    "S": [['A', 'B']],
-    "Z": [['C'], ['z']],
-    "A": [['a',]],
+    "S": [['A', 'B', 'C'], ['Q']],
+    "F": [['B', 'Q']],
+    "A": [['a']],
     "B": [['b']],
-    "C": [['c'], ['d'], ['e']],
+    "C": [['c']],
+    "Q": [['q']]
 }
 
-# Eliminamos reglas unitarias
-new_rules = remove_unit_rules(rules)
-
-# Mostramos las nuevas reglas
+new_rules = remove_unit_rules(non_terminals, terminals, rules)
 print(new_rules)
