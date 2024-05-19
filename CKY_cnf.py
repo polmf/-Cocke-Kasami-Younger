@@ -39,9 +39,41 @@ def get_new_non_term(new_non_terms):
     new_non_terms.add(new_non_term)
     return new_non_term
 
-def transformar(non_terminals, terminals, R):
+def simplificar_gramatica(init_symbol, gramatica):
+    # Encuentra todas las reglas que son idénticas y unifica
+    reglas_identicas = {}
+    for clave, reglas in list(gramatica.items()):
+        reglas_tupla = tuple(tuple(regla) for regla in reglas)
+        if reglas_tupla not in reglas_identicas:
+            reglas_identicas[reglas_tupla] = clave
+        else:
+            clave_existente = reglas_identicas[reglas_tupla]
+            for c, rs in gramatica.items():
+                gramatica[c] = [[clave_existente if s == clave else s for s in regla] for regla in rs]
+            del gramatica[clave]
+    
+    # Elimina las claves no utilizadas
+    usados = {init_symbol}
+    cambio = True
+    while cambio:
+        cambio = False
+        for clave, reglas in gramatica.items():
+            for regla in reglas:
+                for simbolo in regla:
+                    if simbolo in gramatica and simbolo not in usados:
+                        usados.add(simbolo)
+                        cambio = True
+    
+    for clave in list(gramatica.keys()):
+        if clave not in usados:
+            del gramatica[clave]
+
+    return gramatica
+
+
+
+def transformar(non_terminals, terminals, init_symbol, R):
     R = R.copy()
-    claves_para_eliminar = []
     nuevos_no_terminales = {}
     new_non_terms = set(non_terminals)
     
@@ -50,13 +82,12 @@ def transformar(non_terminals, terminals, R):
         for rhs in rule:
             if len(rhs) == 1 and rhs[0] in non_terminals:
                 R[lhs].extend(R[rhs[0]])
-                claves_para_eliminar.append(rhs[0])
             elif len(rhs) == 2:
-                if rhs[0] not in non_terminals and rhs[0] not in terminals:
+                if rhs[0] not in non_terminals and rhs[0] in terminals:
                     nuevo_nt = get_new_non_term(new_non_terms)
                     nuevos_no_terminales[nuevo_nt] = [[rhs[0]]]
                     rhs[0] = nuevo_nt
-                if rhs[1] not in non_terminals and rhs[1] not in terminals:
+                if rhs[1] not in non_terminals and rhs[1] in terminals:
                     nuevo_nt = get_new_non_term(new_non_terms)
                     nuevos_no_terminales[nuevo_nt] = [[rhs[1]]]
                     rhs[1] = nuevo_nt
@@ -73,9 +104,7 @@ def transformar(non_terminals, terminals, R):
     
     R.update(nuevos_no_terminales)
     
-    for clave in claves_para_eliminar:
-        if clave in R:
-            del R[clave]
+    R = simplificar_gramatica(init_symbol, R)
 
     return R
 
@@ -104,7 +133,7 @@ def CKY(non_terminals, terminals, R, init_symbol, w):
     gramatica_correcte = gramatica_CFN(non_terminals, terminals, R)
 
     if not gramatica_correcte:
-        R = transformar(non_terminals, terminals, R)
+        R = transformar(non_terminals, terminals, init_symbol, R)
     
     T = {}           
     for j in range(1, n+1):
@@ -139,7 +168,19 @@ def CKY(non_terminals, terminals, R, init_symbol, w):
         print("La palabra '{}' no es aceptada por la gramática.".format(w))
         return T
 
-w = 'abc'
+w = 'az'
+
+non_terminals = ['S', 'F', 'A', 'B', 'C', 'Q']
+terminals = ['a', 'b', 'c', 'f', 'q', 'z']
+
+R = {
+    "S": [['A', 'z'], ['F']],
+    "F": [['B', 'A', 'Q'], ['C', 'z']],
+    "A": [['a']],
+    "B": [['b']],
+    "C": [['c']],
+    "Q": [['q'], ['C']]
+}
 
 table = CKY(non_terminals, terminals, R, init_symbol, w)
 
