@@ -47,9 +47,10 @@ def gramatica_CFN(non_terminals, terminals, R):
     return True
 
 
-def CKY(R, init_symbol, w):
+def CKY(R, w):
     n = len(w)
     
+    init_symbol = next(iter(R))
     non_terminals = set()
     terminals = set()
     non_terminals.add(init_symbol)
@@ -107,7 +108,7 @@ def CKY(R, init_symbol, w):
 
 w = 'ab'
 
-table = CKY(R, init_symbol, w)
+table = CKY(R, w)
 
 # Imprime la tabla CKY
 """for key, value in table.items():
