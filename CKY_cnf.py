@@ -13,9 +13,7 @@ V and X are assumed to be disjoint sets.
 import random
 import string
 
-non_terminals = ['S', 'F', 'A', 'B', 'C', 'Q']
-terminals = ['a', 'b', 'c', 'q', 'z']
- 
+
 # Rules of the grammar
 R = {
     "S": [['A', 'B', 'C'], ['Q']],
@@ -127,13 +125,32 @@ def gramatica_CFN(non_terminals, terminals, R):
     return True
 
 
-def CKY(non_terminals, terminals, R, init_symbol, w):
+def CKY(R, w):
     n = len(w)
+    
+    init_symbol = next(iter(R))
+    non_terminals = set()
+    terminals = set()
+    non_terminals.add(init_symbol)
+
+    # Recorremos cada regla de producción en el diccionario
+    for rules in R.values():
+        for rule in rules:
+            for symbol in rule:
+                if symbol.isupper():
+                    non_terminals.add(symbol)
+                elif symbol.islower():
+                    terminals.add(symbol)
     
     gramatica_correcte = gramatica_CFN(non_terminals, terminals, R)
 
     if not gramatica_correcte:
+        print('La gramàtica no està en forma normal de Chomsky')
         R = transformar(non_terminals, terminals, init_symbol, R)
+        print('La gramàtica ha estat corregida. Queda de la següent forma:')
+        for keys, rules in R.items():
+            print(keys, "->", rules)
+        
     
     T = {}           
     for j in range(1, n+1):
@@ -168,22 +185,21 @@ def CKY(non_terminals, terminals, R, init_symbol, w):
         print("La palabra '{}' no es aceptada por la gramática.".format(w))
         return T
 
-w = 'az'
+w = 'baqf'
 
-non_terminals = ['S', 'F', 'A', 'B', 'C', 'Q']
-terminals = ['a', 'b', 'c', 'f', 'q', 'z']
 
 R = {
-    "S": [['A', 'z'], ['F']],
-    "F": [['B', 'A', 'Q'], ['C', 'z']],
+    "S": [['A', 'z']],
+    "F": [['B', 'A', 'H'], ['C', 'z'], ['f']],
+    "H": [['Q', 'F']],
     "A": [['a']],
     "B": [['b']],
     "C": [['c']],
     "Q": [['q'], ['C']]
 }
 
-table = CKY(non_terminals, terminals, R, init_symbol, w)
-
+table = CKY(R, w)
+print(table)
 # Imprime la tabla CKY
 """for key, value in table.items():
     print(key, ":", value)"""

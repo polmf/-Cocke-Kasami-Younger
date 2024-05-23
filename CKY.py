@@ -47,8 +47,24 @@ def gramatica_CFN(non_terminals, terminals, R):
     return True
 
 
-def CKY(non_terminals, terminals, R, init_symbol, w):
+def CKY(R, init_symbol, w):
     n = len(w)
+    
+    non_terminals = set()
+    terminals = set()
+    non_terminals.add(init_symbol)
+
+    # Recorremos cada regla de producción en el diccionario
+    for rules in R.values():
+        for rule in rules:
+            for symbol in rule:
+                if symbol.isupper():
+                    non_terminals.add(symbol)
+                elif symbol.islower():
+                    terminals.add(symbol)
+
+    print("Non-terminals:", list(non_terminals))
+    print("Terminals:", list(terminals))
     
     gramatica_correcte = gramatica_CFN(non_terminals, terminals, R)
 
@@ -91,7 +107,7 @@ def CKY(non_terminals, terminals, R, init_symbol, w):
 
 w = 'ab'
 
-table = CKY(non_terminals, terminals, R, init_symbol, w)
+table = CKY(R, init_symbol, w)
 
 # Imprime la tabla CKY
 """for key, value in table.items():
