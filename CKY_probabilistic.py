@@ -15,47 +15,141 @@ V and X are assumed to be disjoint sets.
 ########## CKY PROBABILISTIC ##########
 #######################################
 
-R_probabilistic = {
-     "S": [(['NP', 'VP'], 0.5), (['NP', 'Vi'], 0.5)],
-     "NP": [(['DT', 'NN'], 0.4), (['NP', 'PP'], 0.6)],
-     "PP": [(['IN', 'NP'], 1.0)],
-     "VP": [(['Vt', 'NP'], 0.4), (['VP', 'PP'], 0.1), (['Vi', 'PP'], 0.5)],
-     "Vi": [(['sleeps'], 1.0)],
-     "Vt": [(['saw'], 1.0)],
-     "DT": [(['the'], 1.0)],
-     "NN": [(['man'], 0.7), (['telescope'], 0.1), (['woman'], 0.2)],
-     "IN": [(['with'], 0.5), (['in'], 0.5)]
-    }
+import sys
 
-init_symbol = 'S'
+def parse_grammar_prob(grammar_text):
+    """Analitzem la gramàtica d’un text determinat.
+    
+    Args:
+        grammar_text (str): Regles de gramàtica a CNF, una per línia.
+        
+    Returns:
+        dict: Representació del diccionari de la gramàtica.
+    """
+    grammar = {}
+    for line in grammar_text.strip().split('\n'):
+        if '->' in line:
+            head, bodies = line.split('->')
+            head = head.strip()
+            bodies = bodies.strip().split('|')
+            
+            if head not in grammar:
+                grammar[head] = []
+            
+            for body in bodies:
+                llista_regles = []
+                for regla in body.split():
+                    if regla.isalpha():
+                        # Si la regla és alfabètica i té més d’una lletra, afegiu cada símbol individualment
+                        if len(regla) > 1:
+                            llista_regles.extend(list(regla.strip()))
+                        else:
+                            llista_regles.append(regla.strip())
+                    else:
+                        # Si la regla conté un número (probabilitat), netegeu -la i afegiu -la juntament amb les regles
+                        regla = regla.replace('(', '').replace(')', '')
+                        grammar[head].append((llista_regles, float(regla)))
 
-def CKY_prob(R, init_symbol, w):
+
+
+                    
+    return grammar
+
+def gramatica_CFN(non_terminals, terminals, R):
+    """
+    Recorre totes les regles i comprova que les unitàries siguin terminals i les binàries no terminals.
+    A més, assegura que les regles només siguin unitàries o binàries.
+    
+    Parameters:
+        non_terminals (set): Conjunt de no terminals
+        terminals (set): Conjunt de terminals
+        R (dict): Diccionari de la gramàtica
+        
+    Returns:
+        bool: Retorna True si la gramàtica és correcta, False si no ho és
+    """
+    
+    for lhs, rule in R.items():
+        for rhs in rule:
+            for value in rhs:
+                if isinstance(value, list): # si no estem treballant amb la probabilitat
+                    if len(value) == 1: # si trobem una regla unitària
+                        if value[0] not in terminals:
+                            print("Terminal no trobat:", value)
+                            return False
+                        
+                    elif len(value) == 2: # si trobem una regla binària
+                        if value[0] not in non_terminals or value[1] not in non_terminals:
+                            print("No es troba el non_terminal:", value)
+                            return False
+
+                    elif len(value) >= 3: # si trobem una regla amb més de dos elements
+                        return False
+    
+    return True
+
+
+def CKY_prob(R, w):
+    """
+    Aquesta funció implementa l'algoritme CKY per determinar si una paraula w pertany al llenguatge generat per una gramàtica G.
+    
+    Rep com a paràmetres:
+    - R: un diccionari que representa la gramàtica en Forma Normal de Chomsky.
+    - w: una paraula que volem analitzar.
+    
+    Retorna:
+    - T: una taula que conté les regles de producció que s'han aplicat per generar la paraula w.
+    """
+    
     n = len(w)
     
+    init_symbol = next(iter(R))
+    non_terminals = set()
+    terminals = set()
+    non_terminals.add(init_symbol)
+
+    # Recorrem tota la gramàtica per trobar els no terminals i terminals
+    for rules in R.values():
+        for rule in rules:
+            for value in rule:
+                if isinstance(value, list):    
+                    for symbol in value:
+                        if symbol.isupper():
+                            non_terminals.add(symbol)
+                        elif symbol.islower():
+                            terminals.add(symbol)
+
+    #print("Non-terminals:", list(non_terminals))
+    #print("Terminals:", list(terminals))
+    
+    gramatica_correcte = gramatica_CFN(non_terminals, terminals, R)
+
+    if not gramatica_correcte:
+        print('La gramàtica no està en forma norma de Chomsky')
+        return
+    
     T = {}           
-    for j in range(1, n+1):
+    for j in range(1, n+1): # recorrem la paraula
         i = 1
         while j <= n:
             if i == j:
-                
+                # si la paraula té una sola lletra, busquem la regla que la conté
                 val = [(key, regla[1]) for key, value in R.items() for regla in value if w[i-1] in regla[0]]                              
-                
-                T[(i, j)] = max(val, key=lambda x: x[1]) if val else []
+                T[(i, j)] = max(val, key=lambda x: x[1], default=[])
                 
             else:
                 val = []
                 for k in range(i, j):
-                    if k+1 <= j:
-                        regla_A = T[(i, k)]
-                        regla_B = T[(k+1, j)]
+                    regla_A = T[(i, k)] # regles de la part esquerra
+                    regla_B = T[(k+1, j)] # regles de la part dreta
                         
-                        for key, value in R.items():
-                            for regla in value:
-                                if regla_A and regla_B and [regla_A[0], regla_B[0]] == regla[0]:
-                                    probabilitat = regla[1] * regla_A[1] * regla_B[1]
-                                    val.append((key, probabilitat))
-                        
-                T[(i, j)] = max(val, key=lambda x: x[1]) if val else []
+                    for key, value in R.items(): # recorrem totes les regles
+                        for regla in value: # recorrem les regles
+                            if regla_A and regla_B and [regla_A[0], regla_B[0]] == regla[0]: # si trobem una regla que contingui les dues parts
+                                probabilitat = regla[1] * regla_A[1] * regla_B[1] # calculem la probabilitat
+                                val.append((key, probabilitat)) 
+                
+                T[(i, j)] = max(val, key=lambda x: x[1], default=[]) # agafem la regla amb la probabilitat més alta
             
             i += 1
             j += 1
@@ -67,68 +161,36 @@ def CKY_prob(R, init_symbol, w):
         print("La palabra '{}' no es aceptada por la gramática.".format(w))
         return T
 
-w = 'the woman saw the man with the telescope'.split()
+# llegim la gramàtica del fitxer de text passada per paràmetre
+def main():
+    """Main function to read grammar and word from input files, and determine if the word is in the language."""
+    if len(sys.argv) != 2:
+        print("Usage: python cky.py <grammar_file>")
+        sys.exit(1)
     
-table = CKY_prob(R_probabilistic, init_symbol, w)
+    grammar_file = sys.argv[1]
     
-for key, value in table.items():
-    print(key, ":", value)
+    # Read grammar from file
+    with open(grammar_file, 'r') as f:
+        grammar_text = f.read()
+    R = parse_grammar_prob(grammar_text)
+    print(R)
     
-    
-
-#######################################
-################ CKY ##################
-#######################################
- 
-# Rules of the grammar
-R = {
-     "S": [['a'], ['X', 'A'], ['A', 'X'], ['b']],
-     "A": [['R', 'B']],
-     "B": [['A', 'X'], ['b'], ['a']],
-     "X": [['a']],
-     "R": [['X', 'B']]
-    }
-
-def CKY(non_terminals, terminals, R, init_symbol, w):
-    n = len(w)
-    
-    T = {}           
-    for j in range(1, n+1):
-        i = 1
-        while j <= n:
-            if i == j:
-                val = [key for key, value in R.items() if [w[i-1]] in value]                       
-                T[(i, j)] = val
+    while True:
+        word = input("Introdueix la paraula a analitzar: ")
+        
+        table = CKY_prob(R, str(word))
+        
+        print("Taula:")
+        for i in range(1, len(word)+1):
+            for j in range(i, len(word)+1):
+                print("T[{}, {}] = {}".format(i, j, table[(i, j)]))
                 
-            else:
-                val = []
-                for k in range(i, j):
-                    if k+1 <= j:
-                        regla_A = T[(i, k)]
-                        regla_B = T[(k+1, j)]
-                        
-                        for key, value in R.items():
-                            for regla_a in regla_A:
-                                for regla_b in regla_B:
-                                    if [regla_a, regla_b] in value:
-                                        val.append(key)
-                        
-                T[(i, j)] = val
-                
-            i += 1
-            j += 1
-            
-    if init_symbol in T[(1, n)]:
-        print("La palabra '{}' es aceptada por la gramática.".format(w))
-        return T
-    else:
-        print("La palabra '{}' no es aceptada por la gramática.".format(w))
-        return T
+        
+        response = input("Vols continuar? (s/n): ")
+        
+        if response.lower() != 's':
+            break
 
-"""#w = 'aabb'
-
-#table = CKY(non_terminals, terminals, R, init_symbol, w)
-
-# Imprime la tabla CKY
-for key, value in table.items():
-    print(key, ":", value)"""
+if __name__ == "__main__":
+    main()
