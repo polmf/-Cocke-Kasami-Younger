@@ -270,10 +270,10 @@ def CKY(R, w):
             
     if init_symbol in T[(1, n)]:
         print("La palabra '{}' es aceptada por la gramática.".format(w))
-        return R
+        return R, T
     else:
         print("La palabra '{}' no es aceptada por la gramática.".format(w))
-        return R
+        return R, T
 
 # llegim la gramàtica del fitxer de text passada per paràmetre
 def main():
@@ -287,7 +287,7 @@ def main():
     # Read grammar from file
     with open(grammar_file, 'r') as f:
         grammar_text = f.read()
-    R = parse_grammar(grammar_text)
+    R, table= parse_grammar(grammar_text)
     
     while True:
         word = input("Introdueix la paraula a analitzar: ")
