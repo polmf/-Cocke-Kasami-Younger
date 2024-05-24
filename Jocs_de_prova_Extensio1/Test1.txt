@@ -1,0 +1,7 @@
+S -> Az
+F -> BAH | Cz | f
+H -> QF
+A -> a
+B -> b
+C -> c
+Q -> q | C
