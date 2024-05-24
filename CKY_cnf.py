@@ -270,10 +270,10 @@ def CKY(R, w):
             
     if init_symbol in T[(1, n)]:
         print("La palabra '{}' es aceptada por la gramática.".format(w))
-        return T
+        return R
     else:
         print("La palabra '{}' no es aceptada por la gramática.".format(w))
-        return T
+        return R
 
 # llegim la gramàtica del fitxer de text passada per paràmetre
 def main():
@@ -292,7 +292,7 @@ def main():
     while True:
         word = input("Introdueix la paraula a analitzar: ")
         
-        table = CKY(R, str(word))
+        R, table = CKY(R, str(word))
         
         response = input("Vols continuar? (s/n): ")
         
