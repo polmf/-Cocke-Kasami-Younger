@@ -122,16 +122,16 @@ def transformar(non_terminals, terminals, init_symbol, R):
         dict: Retorna la gramàtica transformada
     """
     
-    R = R.copy() # Copiar la gramàtica per no modificar l'original 
+    nova_R = R.copy() # Copiar la gramàtica per no modificar l'original 
     nuevos_no_terminales = {} # Diccionari per guardar els nous no terminals
     new_non_terms = set(non_terminals) # Conjunt de no terminals nous
     
-    for lhs, rule in list(R.items()): # Recorrer totes les regles
+    for lhs, rule in list(nova_R.items()): # Recorrer totes les regles
         new_rhs = [] # Llista per guardar les noves regles
         for rhs in rule: # Recorrer totes les regles de la regla
             
             if len(rhs) == 1 and rhs[0] in non_terminals: # Si la regla és unitària i és un no terminal
-                R[lhs].extend(R[rhs[0]]) # Afegir les regles del no terminal a la regla actual
+                nova_R[lhs].extend(nova_R[rhs[0]]) # Afegir les regles del no terminal a la regla actual
             
             elif len(rhs) == 2: # Si la regla és binària
                 if rhs[0] not in non_terminals and rhs[0] in terminals: # Si el primer element és un terminal
@@ -155,13 +155,13 @@ def transformar(non_terminals, terminals, init_symbol, R):
             else: # Si la regla no és unitària ni binària
                 new_rhs.append(rhs) # Afegir la regla a la llista de regles
                 
-        R[lhs] = new_rhs # Reemplaçar les regles de la clau per les noves regles
+        nova_R[lhs] = new_rhs # Reemplaçar les regles de la clau per les noves regles
      
-    R.update(nuevos_no_terminales) # Afegir els nous no terminals a la gramàtica
+    nova_R.update(nuevos_no_terminales) # Afegir els nous no terminals a la gramàtica
     
-    R = simplificar_gramatica(init_symbol, R) # Simplificar la gramàtica
+    nova_R = simplificar_gramatica(init_symbol, nova_R) # Simplificar la gramàtica
 
-    return R
+    return new_non_terms, nova_R
 
 def gramatica_CFN(non_terminals, terminals, R):
     """
@@ -222,6 +222,18 @@ def CKY(R, w):
                     terminals.add(symbol)
     
     gramatica_correcte = gramatica_CFN(non_terminals, terminals, R)
+    
+    if not gramatica_correcte:
+        print('La gramàtica no està en forma normal de Chomsky')
+        while gramatica_correcte == False:
+            non_terminals, R = transformar(non_terminals, terminals, init_symbol, R)
+            gramatica_correcte = gramatica_CFN(non_terminals, terminals, R)
+        print('La gramàtica ha estat corregida. Queda de la següent forma:')
+        for keys, rules in R.items():
+            print(keys, "->", rules)
+    
+    else:
+        print('La gramàtica és correcta')
 
     if not gramatica_correcte:
         print('La gramàtica no està en forma normal de Chomsky')

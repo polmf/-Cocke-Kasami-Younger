@@ -99,9 +99,6 @@ def CKY(R, w):
                     non_terminals.add(symbol)
                 elif symbol.islower():
                     terminals.add(symbol)
-
-    #print("Non-terminals:", list(non_terminals))
-    #print("Terminals:", list(terminals))
     
     gramatica_correcte = gramatica_CFN(non_terminals, terminals, R)
 
