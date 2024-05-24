@@ -29,10 +29,11 @@ R = {
 init_symbol = 'S'
 
 def gramatica_CFN(non_terminals, terminals, R):
-    
+    """Recorre totes les regles i comprova que les unitàries siguin terminals i les binàries no terminals.
+        A més, assegura't que les regles només siguin unitàries o binàries."""
     for lhs, rule in R.items():
         for rhs in rule:
-            # If a terminal is found
+
             if len(rhs) == 1:
                 if rhs[0] not in terminals:
                     return False

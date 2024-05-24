@@ -27,18 +27,20 @@ R = {
 init_symbol = 'S'
 
 def get_new_non_term(new_non_terms):
+    """"Aquest funcio rep els no terminals i genera un nou """
     available_non_terms = set(string.ascii_uppercase) - new_non_terms
     if not available_non_terms:
-        # Si no hay letras no terminales disponibles, agrega nuevas letras al conjunto
+        # Si no hi ha no terminals disponibles, es creen de nous
         new_non_terms = set()
-        available_non_terms = set(string.ascii_uppercase)
+        available_non_terms = set([chr(i) + chr(j) for i in range(65, 91) for j in range(65, 91)])
         
     new_non_term = random.choice(list(available_non_terms))
     new_non_terms.add(new_non_term)
     return new_non_term
 
 def simplificar_gramatica(init_symbol, gramatica):
-    # Encuentra todas las reglas que son idénticas y unifica
+    """Aquesta funció s'encarrega d'ordenar la gramàtica i
+        que s'hagi generat tot correctament"""
     reglas_identicas = {}
     for clave, reglas in list(gramatica.items()):
         reglas_tupla = tuple(tuple(regla) for regla in reglas)
@@ -50,7 +52,7 @@ def simplificar_gramatica(init_symbol, gramatica):
                 gramatica[c] = [[clave_existente if s == clave else s for s in regla] for regla in rs]
             del gramatica[clave]
     
-    # Elimina las claves no utilizadas
+    # Elimina las claus no utilitzades
     usados = {init_symbol}
     cambio = True
     while cambio:
@@ -71,6 +73,9 @@ def simplificar_gramatica(init_symbol, gramatica):
 
 
 def transformar(non_terminals, terminals, init_symbol, R):
+    """Recorre totes les regles i comprova que les unitàries siguin terminals i les binàries no terminals.
+        A més, assegura't que les regles només siguin unitàries o binàries."""
+    
     R = R.copy()
     nuevos_no_terminales = {}
     new_non_terms = set(non_terminals)
@@ -107,7 +112,8 @@ def transformar(non_terminals, terminals, init_symbol, R):
     return R
 
 def gramatica_CFN(non_terminals, terminals, R):
-    
+    """Recorre totes les regles i comprova que les unitàries siguin terminals i les binàries no terminals.
+        A més, assegura't que les regles només siguin unitàries o binàries."""
     for lhs, rule in R.items():
         for rhs in rule:
             # If a terminal is found
