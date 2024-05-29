@@ -5,3 +5,6 @@ A -> a
 B -> b
 C -> c
 Q -> q | C
+az
+bcaz
+c

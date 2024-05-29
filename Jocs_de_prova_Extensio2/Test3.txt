@@ -1,0 +1,8 @@
+S -> AB (0.5) | BC (0.5)
+A -> a (1.0)
+B -> b (1.0)
+C -> AB (0.3) | BC (0.7)
+bbab
+abba
+aa
+bab

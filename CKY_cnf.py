@@ -181,13 +181,18 @@ def gramatica_CFN(non_terminals, terminals, R):
         for rhs in rule:
             if len(rhs) == 1: # si trobem una regla unitària
                 if rhs[0] not in terminals:
+                    print('La regla unitària', rhs[0], 'no és terminal')
+                    print('Terminals:', terminals)
                     return False
                 
             if len(rhs) == 2: # si trobem una regla binària
                 if rhs[0] not in non_terminals or rhs[1] not in non_terminals:
+                    print('La regla binària', rhs, 'no és no terminal')
+                    print('No terminals:', non_terminals)
                     return False
 
             if len(rhs) >= 3: # si trobem una regla amb més de dos elements
+                print('La regla', rhs, 'té més de dos elements')
                 return False
     
     return True
@@ -216,10 +221,10 @@ def CKY(R, w):
     for rules in R.values():
         for rule in rules:
             for symbol in rule:
-                if symbol.isupper():
-                    non_terminals.add(symbol)
-                elif symbol.islower():
+                if str(symbol) == 'ε' or str(symbol) == 'Ɛ' or symbol.islower():
                     terminals.add(symbol)
+                else:
+                    non_terminals.add(symbol)
     
     gramatica_correcte = gramatica_CFN(non_terminals, terminals, R)
     
@@ -234,14 +239,26 @@ def CKY(R, w):
     
     else:
         print('La gramàtica és correcta')
-
-    if not gramatica_correcte:
-        print('La gramàtica no està en forma normal de Chomsky')
-        R = transformar(non_terminals, terminals, init_symbol, R)
-        print('La gramàtica ha estat corregida. Queda de la següent forma:')
-        for keys, rules in R.items():
-            print(keys, "->", rules)
         
+    def pot_generar_buida(R, symbol):
+        
+        for regla in R[symbol]:
+            if len(regla) == 2:
+                if pot_generar_buida(R, regla[0]) and pot_generar_buida(R, regla[1]):
+                    return True
+            else:
+                if regla == ['ε'] or regla == ['Ɛ']:return True
+        
+        return False
+
+    
+    if w == "":
+        if pot_generar_buida(R, init_symbol):
+            print("La paraula buida és acceptada per la gramàtica.\n")
+            return R, {}
+        else:
+            print("La paraula buida no és acceptada per la gramàtica.\n")
+            return R, {}
     
     T = {}           
     for j in range(1, n+1): # recorrem la paraula
@@ -269,25 +286,36 @@ def CKY(R, w):
             j += 1
             
     if init_symbol in T[(1, n)]:
-        print("La palabra '{}' es aceptada por la gramática.".format(w))
+        print("La paraula '{}' es acceptada per la gramàtica.\n".format(w))
         return R, T
     else:
-        print("La palabra '{}' no es aceptada por la gramática.".format(w))
+        print("La paraula '{}' no es acceptada por la gramàtica.\n".format(w))
         return R, T
 
 # llegim la gramàtica del fitxer de text passada per paràmetre
 def main():
     """Funció principal per llegir fitxers d’entrada de gramàtica i paraules i determinar si la paraula es troba en l’idioma."""
     if len(sys.argv) != 2:
-        print("Us: python cky.py <grammar_file>")
+        print("Us: python CKY_cnf.py <grammar_file>")
         sys.exit(1)
     
     grammar_file = sys.argv[1]
     
-    # Read grammar from file
-    with open(grammar_file, 'r') as f:
-        grammar_text = f.read()
-    R, table= parse_grammar(grammar_text)
+    # Llegim la gramàtica del fitxer de text
+    with open(grammar_file, 'r', encoding='utf-8') as f:
+        grammar_text, strings = "", ""
+        for line in f.readlines():
+            if len(line.split()) > 1:
+                grammar_text += line
+            else:
+                strings += line
+                
+    R = parse_grammar(grammar_text)
+    
+    
+    for string in strings.split('\n'):
+        print("Paraula a analitzar:", string)
+        table = CKY(R, string)
     
     while True:
         word = input("Introdueix la paraula a analitzar: ")

@@ -165,16 +165,26 @@ def CKY_prob(R, w):
 def main():
     """Main function to read grammar and word from input files, and determine if the word is in the language."""
     if len(sys.argv) != 2:
-        print("Usage: python cky.py <grammar_file>")
+        print("Usage: python CKY_probabilistic.py <grammar_file>")
         sys.exit(1)
     
     grammar_file = sys.argv[1]
     
-    # Read grammar from file
-    with open(grammar_file, 'r') as f:
-        grammar_text = f.read()
+    # Llegim la gramàtica del fitxer de text
+    with open(grammar_file, 'r', encoding='utf-8') as f:
+        grammar_text, strings = "", ""
+        for line in f.readlines():
+            if len(line.split()) > 1:
+                grammar_text += line
+            else:
+                strings += line
+                
     R = parse_grammar_prob(grammar_text)
-    print(R)
+    
+    for string in strings.split('\n'):
+        if string:
+            print("Paraula a analitzar:", string)
+            table = CKY_prob(R, string)
     
     while True:
         word = input("Introdueix la paraula a analitzar: ")

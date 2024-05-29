@@ -60,13 +60,18 @@ def gramatica_CFN(non_terminals, terminals, R):
         for rhs in rule:
             if len(rhs) == 1: # si trobem una regla unitària
                 if rhs[0] not in terminals:
+                    print('La regla unitària', rhs[0], 'no és terminal')
+                    print('Terminals:', terminals)
                     return False
                 
             if len(rhs) == 2: # si trobem una regla binària
                 if rhs[0] not in non_terminals or rhs[1] not in non_terminals:
+                    print('La regla binària', rhs, 'no és no terminal')
+                    print('No terminals:', non_terminals)
                     return False
 
             if len(rhs) >= 3: # si trobem una regla amb més de dos elements
+                print('La regla', rhs, 'té més de dos elements')
                 return False
     
     return True
@@ -95,16 +100,38 @@ def CKY(R, w):
     for rules in R.values():
         for rule in rules:
             for symbol in rule:
-                if symbol.isupper():
-                    non_terminals.add(symbol)
-                elif symbol.islower():
+                if str(symbol) == 'ε' or str(symbol) == 'Ɛ' or symbol.islower():
                     terminals.add(symbol)
+                else:
+                    non_terminals.add(symbol)
     
     gramatica_correcte = gramatica_CFN(non_terminals, terminals, R)
 
     if not gramatica_correcte:
-        print('La gramàtica no està en forma norma de Chomsky')
+        print('La gramàtica no està en forma norma de Chomsky\n')
         return
+    
+    
+    def pot_generar_buida(R, symbol):
+        
+        for regla in R[symbol]:
+            if len(regla) == 2:
+                if pot_generar_buida(R, regla[0]) and pot_generar_buida(R, regla[1]):
+                    return True
+            else:
+                if regla == ['ε'] or regla == ['Ɛ']:return True
+        
+        return False
+
+    
+    if w == "":
+        if pot_generar_buida(R, init_symbol):
+            print("La paraula buida és acceptada per la gramàtica.\n")
+            return {}
+        else:
+            print("La paraula buida no és acceptada per la gramàtica.\n")
+            return {}
+    
     
     T = {}           
     for j in range(1, n+1): # recorrem la paraula
@@ -121,21 +148,20 @@ def CKY(R, w):
                     regla_B = T[(k+1, j)] # regles de la part dreta
                     
                     for key, value in R.items(): # recorrem totes les regles de la gramàtica
-                        for regla_a in regla_A: # recorrem les regles de la part esquerra
-                            for regla_b in regla_B: # recorrem les regles de la part dreta 
-                                if [regla_a, regla_b] in value: # si trobem una regla que contingui les dues parts
-                                    val.append(key)
-                        
+                        for rule in value:
+                            if len(rule) == 2 and rule[0] in regla_A and rule[1] in regla_B: # si la regla té dos parts i trobem una regla que contingui les dues parts
+                                val.append(key)
+                            
                 T[(i, j)] = val # afegim les regles que hem trobat
                 
             i += 1
             j += 1
             
     if init_symbol in T[(1, n)]:
-        print("La paraula '{}' es acceptada per la gramàtica.".format(w))
+        print("La paraula '{}' es acceptada per la gramàtica.\n".format(w))
         return T
     else:
-        print("La paraula '{}' no es acceptada por la gramàtica.".format(w))
+        print("La paraula '{}' no es acceptada por la gramàtica.\n".format(w))
         return T
 
 
@@ -144,15 +170,25 @@ def main():
     """Funció principal per llegir fitxers d’entrada de gramàtica i paraules i determinar si la paraula es troba en l’idioma."""
     
     if len(sys.argv) != 2:
-        print("Us: python cky.py <grammar_file>")
+        print("Us: python CKY.py <grammar_file>")
         sys.exit(1)
     
     grammar_file = sys.argv[1]
     
     # Llegim la gramàtica del fitxer de text
-    with open(grammar_file, 'r') as f:
-        grammar_text = f.read()
-    R = parse_grammar(grammar_text) 
+    with open(grammar_file, 'r', encoding='utf-8') as f:
+        grammar_text, strings = "", ""
+        for line in f.readlines():
+            if len(line.split()) > 1:
+                grammar_text += line
+            else:
+                strings += line
+                
+    R = parse_grammar(grammar_text)
+    
+    for string in strings.split('\n'):
+        print("Paraula a analitzar:", string)
+        table = CKY(R, string)
     
     while True:
         
@@ -166,33 +202,4 @@ def main():
             break
 
 if __name__ == "__main__":
-    main()
-    
-    
-    # amb el format:
-    # S -> AB
-    # F -> BQ
-    # A -> a
-    # B -> b
-    # C -> c
-    # Q -> q
-    #
-    # i la guardem en un diccionari
-    #
-    # R = {
-    #     "S": [['A', 'B']],
-    #     "F": [['B', 'Q']],
-    #     "A": [['a']],
-    #     "B": [['b']],
-    #     "C": [['c']],
-    #     "Q": [['q']]
-    # }
-    #
-    # i la paraula a analitzar
-    #
-    # w = 'ab'
-    #
-    # i cridem la funció CKY(R, w)
-    # que ens retornarà la taula CKY
-    #
-    
+    main()    

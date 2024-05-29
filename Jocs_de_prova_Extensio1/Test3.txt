@@ -1,0 +1,6 @@
+S -> AB | A
+A -> a | Ɛ
+B -> b
+
+ba
+aab

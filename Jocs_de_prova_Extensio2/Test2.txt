@@ -3,3 +3,6 @@ A -> BC (0.5) | a (0.5)
 B -> SC (0.5) | b (0.5)
 C -> DD (0.5) | b (0.5)
 D -> BA (1.0)
+bbba
+bbb
+bababababa
